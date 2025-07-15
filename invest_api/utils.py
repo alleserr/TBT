@@ -4,6 +4,8 @@ from decimal import Decimal
 from grpc import StatusCode
 from tinkoff.invest import MoneyValue, Quotation, Candle, HistoricCandle
 from tinkoff.invest.utils import quotation_to_decimal, decimal_to_quotation
+from tinkoff.invest import Client
+import os
 
 __all__ = ()
 
@@ -54,3 +56,13 @@ def invest_api_retry_status_codes() -> set[StatusCode]:
     return {StatusCode.CANCELLED, StatusCode.DEADLINE_EXCEEDED, StatusCode.RESOURCE_EXHAUSTED,
             StatusCode.FAILED_PRECONDITION, StatusCode.ABORTED, StatusCode.INTERNAL,
             StatusCode.UNAVAILABLE, StatusCode.DATA_LOSS, StatusCode.UNKNOWN}
+
+
+def get_figi_by_ticker(token: str, ticker: str) -> str:
+    """Возвращает FIGI по тикеру фьючерса через Tinkoff Invest API."""
+    with Client(token) as client:
+        response = client.instruments.futures()
+        for future in response.instruments:
+            if future.ticker == ticker:
+                return future.figi
+    return None
